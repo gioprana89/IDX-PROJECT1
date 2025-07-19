@@ -278,7 +278,87 @@ modul_data_IDX_ui <- function(id) {
                
                
                
-      ) #End of tabpanel Statistics
+      ), #End of tabpanel Statistics
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      tabPanel(title = tags$h5( tags$img(src = "excel.png", width = "30px"), 'Print Data to Excel'),
+               
+               
+               
+               
+               h1("Print Data to Excel",
+                  style="color:red;
+                     text-align:center;
+                     font-size:35px;"         ),
+               
+               
+               
+               
+       verbatimTextOutput(ns("cetak_data")),
+               
+               
+               
+               
+               
+               
+               
+               
+               
+               
+               
+               br()
+               
+
+               
+      ) #End of tabpanel print data to excel
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       
       
       
@@ -591,8 +671,80 @@ modul_data_IDX_server <- function(input, output, session) {
 fungsi_nama_perusahaan <- function()
 {
   
+  
   dat <- read_xlsx("DATA IDX.xlsx")
   dat <- as.data.frame(dat)
+  
+  
+  
+  #####Seleksi 1: Pemilihan Variabel#######
+  
+  nama <- colnames(dat)
+  
+  terpilih_variabel <- input$terpilih_variabel
+  
+  dat_baru <- dat[c(terpilih_variabel)]
+  
+  
+  
+  
+  
+  
+  #####Seleksi 2: Pemilihan Sektor#######  
+  
+  ###############
+  ###############
+  
+  dat <- dat_baru
+  
+  terpilih_sektor <- input$terpilih_sektor
+  terpilih_sektor <- as.character(terpilih_sektor)
+  
+  full_sektor <- dat[,"Sector"]
+  
+  indeks <- full_sektor %in% terpilih_sektor 
+  indeks <- which(indeks==TRUE)
+  
+  dat2 <- dat[c(indeks),]
+  
+  
+  
+  
+  #####Seleksi 3: Pemilihan Subsektor#######  
+  
+  terpilih_subsektor <- input$terpilih_subsektor
+  terpilih_subsektor <- as.character(terpilih_subsektor)
+  
+  full_subsektor <- dat2[,"Sub Industry"]
+  
+  indeks <- full_subsektor %in% terpilih_subsektor 
+  indeks <- which(indeks==TRUE)
+  
+  dat3 <- dat2[c(indeks),]
+  
+  
+  
+  
+  
+  #####Seleksi 4: Tahun#######  
+  
+  full_tahun = dat3[,c("Data Time")]
+  
+  
+  terpilih_tahun <- input$terpilih_tahun
+  terpilih_tahun <- as.numeric(terpilih_tahun)
+  
+  
+  indeks <- full_tahun %in% terpilih_tahun 
+  indeks <- which(indeks==TRUE)
+  
+  dat4 <- dat3[c(indeks),]
+  
+  
+  
+  
+  
+  dat <- dat4
   nama_perusahaan <- dat[, "Code"]
   
   nama_perusahaan <- as.factor(nama_perusahaan)
@@ -1169,7 +1321,43 @@ fungsi_nama_perusahaan <- function()
    
    
    
+   ###################Cetak Data
    
+   
+   
+   output$cetak_data <- renderPrint({
+     
+     
+     p <- fungsi_seleksi_data()
+     
+     
+     
+     data_cetak <- p
+     
+     data_cetak <- as.data.frame(data_cetak)
+     
+     
+     wb <- openxlsx::createWorkbook()
+     
+     
+     hs1 <- openxlsx::createStyle(fgFill = "#DCE6F1", halign = "CENTER", textDecoration = "italic",
+                                  border = "Bottom")
+     
+     
+     hs2 <- openxlsx::createStyle(fontColour = "#ffffff", fgFill = "#4F80BD",
+                                  halign = "center", valign = "center", textDecoration = "bold",
+                                  border = "TopBottomLeftRight")
+     
+     openxlsx::addWorksheet(wb, "Data IDX", gridLines = TRUE)
+     
+     openxlsx::writeDataTable(wb, "Data IDX", data_cetak, rowNames = FALSE, startRow = 2, startCol = 2, tableStyle = "TableStyleMedium21")
+     
+     
+     
+     openxlsx::openXL(wb)
+     
+     
+   })
    
    
    
